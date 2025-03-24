@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
-namespace SamplePlugin.Windows;
+namespace BlmCopium.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {
@@ -12,12 +12,12 @@ public class ConfigWindow : Window, IDisposable
     // We give this window a constant ID using ###
     // This allows for labels being dynamic, like "{FPS Counter}fps###XYZ counter window",
     // and the window ID will always be "###XYZ counter window" for ImGui
-    public ConfigWindow(Plugin plugin) : base("A Wonderful Configuration Window###With a constant ID")
+    public ConfigWindow(Plugin plugin) : base("BLM Copium Config###With a constant ID")
     {
         Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoScrollWithMouse;
 
-        Size = new Vector2(232, 90);
+        Size = new Vector2(250, 150);
         SizeCondition = ImGuiCond.Always;
 
         Configuration = plugin.Configuration;
@@ -40,19 +40,46 @@ public class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
+        bool shouldSave = false;
         // can't ref a property, so use a local copy
-        var configValue = Configuration.SomePropertyToBeSavedAndWithADefault;
-        if (ImGui.Checkbox("Random Config Bool", ref configValue))
+        var enochainDurationValue = Configuration.EnochainDuration;
+        if (ImGui.DragFloat("Enochain Duration", ref enochainDurationValue))
         {
-            Configuration.SomePropertyToBeSavedAndWithADefault = configValue;
+            Configuration.EnochainDuration = enochainDurationValue;
+            shouldSave = true;
+        }
+
+        var interruptValue = Configuration.InterruptCastsWhenTimerIsZero;
+        if (ImGui.Checkbox("Interrupt Casts", ref interruptValue))
+        {
+            Configuration.InterruptCastsWhenTimerIsZero = interruptValue;
             // can save immediately on change, if you don't want to provide a "Save and Close" button
-            Configuration.Save();
+            shouldSave = true;
         }
 
         var movable = Configuration.IsConfigWindowMovable;
         if (ImGui.Checkbox("Movable Config Window", ref movable))
         {
             Configuration.IsConfigWindowMovable = movable;
+            shouldSave = true;
+        }
+
+        var xCoord = Configuration.TimerXCoord;
+        if (ImGui.DragInt("X", ref xCoord))
+        {
+            Configuration.TimerXCoord = xCoord;
+            shouldSave = true;
+        }
+
+        var yCoord = Configuration.TimerYCoord;
+        if (ImGui.DragInt("Y", ref yCoord))
+        {
+            Configuration.TimerYCoord = yCoord;
+            shouldSave = true;
+        }
+
+        if(shouldSave)
+        {
             Configuration.Save();
         }
     }
