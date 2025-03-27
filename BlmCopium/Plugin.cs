@@ -73,6 +73,7 @@ public sealed class Plugin : IDalamudPlugin
 
         ConfigWindow.Dispose();
         MainWindow.Dispose();
+        enochainTimer.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
     }

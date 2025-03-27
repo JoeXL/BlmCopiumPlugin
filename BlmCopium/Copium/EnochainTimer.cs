@@ -17,6 +17,8 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using System.Runtime.InteropServices;
 using LuminaAction = Lumina.Excel.Sheets.Action;
 using Lumina.Excel;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
 namespace BlmCopium.Copium;
 
@@ -39,8 +41,6 @@ internal unsafe class EnochainTimer
     private readonly uint blizzardIVAction = 3576;
     private readonly uint flarestarAction = 36989;
 
-    private readonly uint enochainDuration = 15;
-
     private readonly uint interruptActionId = 2; //This is currently jump
 
     private ComboDetail combo = new ComboDetail();
@@ -48,37 +48,22 @@ internal unsafe class EnochainTimer
     private delegate void OnActionUsedDelegate(uint sourceId, IntPtr sourceCharacter, IntPtr pos, IntPtr effectHeader, IntPtr effectArray, IntPtr effectTrail);
     private Hook<OnActionUsedDelegate>? onActionUsedHook;
 
+    private delegate void OnUseActionDelegate(ActionManager* param1, ActionType param2, uint actionId, ulong param4, uint param5, ActionManager.UseActionMode param6, uint param7, bool* param8, bool param9);
+    private Hook<OnUseActionDelegate>? onUseActionHook;
+
     private ExcelSheet<LuminaAction>? actionSheet = Plugin.DataManager.GetExcelSheet<LuminaAction>();
-
-    /*private delegate void OnActorControlDelegate(uint entityId, uint id, uint unk1, uint type, uint unk2, uint unk3, uint unk4, uint unk5, UInt64 targetId, byte unk6);
-    private Hook<OnActorControlDelegate>? _onActorControlHook;
-
-    private delegate void OnCastDelegate(uint sourceId, IntPtr sourceCharacter);
-    private Hook<OnCastDelegate>? _onCastHook;*/
 
     private Configuration Configuration;
 
     public EnochainTimer(Plugin plugin)
     {
         try
-        {
-            onActionUsedHook = Plugin.GameInteropProvider.HookFromSignature<OnActionUsedDelegate>(
-                "40 ?? 56 57 41 ?? 41 ?? 41 ?? 48 ?? ?? ?? ?? ?? ?? ?? 48",
-                OnActionUsed
-            );
+        {            
+            onActionUsedHook = Plugin.GameInteropProvider.HookFromAddress<OnActionUsedDelegate>((IntPtr)ActionEffectHandler.MemberFunctionPointers.Receive, OnActionUsed);
             onActionUsedHook?.Enable();
 
-            /*_onActorControlHook = Plugin.GameInteropProvider.HookFromSignature<OnActorControlDelegate>(
-                "E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64",
-                OnActorControl
-            );
-            _onActorControlHook?.Enable();
-
-            _onCastHook = Plugin.GameInteropProvider.HookFromSignature<OnCastDelegate>(
-                "40 56 41 56 48 81 EC ?? ?? ?? ?? 48 8B F2",
-                OnCast
-            );
-            _onCastHook?.Enable();*/
+            onUseActionHook = Plugin.GameInteropProvider.HookFromAddress<OnUseActionDelegate>((IntPtr)ActionManager.MemberFunctionPointers.UseAction, UseAction);
+            onUseActionHook?.Enable();
         }
         catch (Exception e)
         {
@@ -88,31 +73,28 @@ internal unsafe class EnochainTimer
         Configuration = plugin.Configuration;
     }
 
-    protected void Dispose(bool disposing)
+    public void Dispose()
     {
-        if (!disposing)
-        {
-            return;
-        }
-
-        //Plugin.Framework.Update -= Update;
-
         onActionUsedHook?.Disable();
         onActionUsedHook?.Dispose();
 
-        /*_onActorControlHook?.Disable();
-        _onActorControlHook?.Dispose();
+        onUseActionHook?.Disable();
+        onUseActionHook?.Dispose();
 
-        _onCastHook?.Disable();
-        _onCastHook?.Dispose();*/
+        if(textNode != null) textNode->ToggleVisibility(false);
     }
 
     private bool CantCastWithoutEnochain(uint action)
     {
+        // Casting paradox shows as a fire/bliz action here :/
         if (
             action == fireIVAction ||
             action == blizzardIVAction ||
-            action == flarestarAction
+            action == flarestarAction ||
+            action == despairAction ||
+            action == paradoxAction ||
+            action == flareAction ||
+            action == freezeAction
             )
             return true;
         return false;
@@ -158,11 +140,6 @@ internal unsafe class EnochainTimer
             if (paramWidget->UldManager.NodeList[i]->NodeId == EnochainTimerNode)
             {
                 textNode = (AtkTextNode*)paramWidget->UldManager.NodeList[i];
-                /*if (reset)
-                {
-                    paramWidget->UldManager.NodeList[i]->ToggleVisibility(false);
-                    continue;
-                }*/
 
                 break;
             }
@@ -231,6 +208,11 @@ internal unsafe class EnochainTimer
                 paramWidget->UldManager.UpdateDrawNodeList();
             }
         }
+
+        if(textNode != null)
+        {
+            textNode->ToggleVisibility(true);
+        }
     }
 
     private void CastWithType(uint actionId, TimelineItemType type)
@@ -242,21 +224,9 @@ internal unsafe class EnochainTimer
                 return;
             }
             combo.Action = actionId;
-            combo.Timer = enochainDuration;
+            combo.Timer = Configuration.EnochainDuration;
         }
     }
-
-    /*private void CastStarted(uint actionId)
-    {
-        combo.Action = actionId;
-        combo.Timer = enochainDuration;
-    }
-
-    private void CastCancelled(uint actionId)
-    {
-        combo.Action = actionId;
-        combo.Timer = enochainDuration;
-    }*/
 
     private void SetupComboText()
     {
@@ -353,12 +323,6 @@ internal unsafe class EnochainTimer
             return TypeForAction(action.Value);
         }
 
-        /*LuminaItem? item = _itemSheet?.GetRowOrDefault(id) ?? _itemSheet?.GetRowOrDefault(id - 1000000);
-        if (item != null)
-        {
-            return TimelineItemType.Item;
-        }*/
-
         return TimelineItemType.Action;
     }
 
@@ -376,29 +340,22 @@ internal unsafe class EnochainTimer
 
         CastWithType((uint)actionId, type.Value);
     }
-
-    /*private void OnActorControl(uint entityId, uint type, uint buffID, uint direct, uint actionId, uint sourceId, uint arg4, uint arg5, ulong targetId, byte a10)
+    private void UseAction(ActionManager* param1, ActionType param2, uint actionId, ulong param4, uint param5, ActionManager.UseActionMode param6, uint param7, bool* param8, bool param9)
     {
-        _onActorControlHook?.Original(entityId, type, buffID, direct, actionId, sourceId, arg4, arg5, targetId, a10);
+        if (Configuration.InterruptCastsWhenTimerIsZero)
+        {
+            var player = Plugin.ClientState.LocalPlayer;
+            if (combo.Timer <= 0)
+            {
+                var actionInstance = ActionManager.Instance();
+                if (CantCastWithoutEnochain(actionId))
+                {
+                    onUseActionHook?.Original(param1, param2, interruptActionId, param4, param5, param6, param7, param8, param9);
+                    return;
+                }
+            }
+        }
 
-        if (type != 15) { return; }
-
-        IPlayerCharacter? player = Plugin.ClientState.LocalPlayer;
-        if (player == null || entityId != player.GameObjectId) { return; }
-
-        CastCancelled(actionId);
+        onUseActionHook?.Original(param1, param2, actionId, param4, param5, param6, param7, param8, param9);
     }
-
-    private void OnCast(uint sourceId, IntPtr ptr)
-    {
-        _onCastHook?.Original(sourceId, ptr);
-
-        IPlayerCharacter? player = Plugin.ClientState.LocalPlayer;
-        if (player == null || sourceId != player.GameObjectId) { return; }
-
-        int value = Marshal.ReadInt16(ptr);
-        uint actionId = value < 0 ? (uint)(value + 65536) : (uint)value;
-
-        CastStarted(actionId);
-    }*/
 }
