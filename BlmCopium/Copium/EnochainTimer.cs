@@ -283,13 +283,23 @@ internal unsafe class EnochainTimer
 
         if (textNode == null) return;
 
+        var player = Plugin.ClientState.LocalPlayer;
+
+        if (player == null) return;
+
+        if (player.ClassJob.Value.Abbreviation.Equals("BLM") == false)
+        {
+            combo.Action = 0;
+            combo.Timer = 0;
+            textNode->AtkResNode.ToggleVisibility(false);
+            return;
+        }
+
         UpdateComboTimer();
         SetupComboText();
 
         if(Configuration.InterruptCastsWhenTimerIsZero)
         {
-            var player = Plugin.ClientState.LocalPlayer;
-            
             if (combo.Timer <= 0 &&  player.IsCasting)
             {
                 var actionInstance = ActionManager.Instance();
