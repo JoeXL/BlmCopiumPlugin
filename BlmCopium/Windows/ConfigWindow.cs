@@ -12,38 +12,27 @@ public class ConfigWindow : Window, IDisposable
     // We give this window a constant ID using ###
     // This allows for labels being dynamic, like "{FPS Counter}fps###XYZ counter window",
     // and the window ID will always be "###XYZ counter window" for ImGui
-    public ConfigWindow(Plugin plugin) : base("BLM Copium Config###With a constant ID")
+    public ConfigWindow(Plugin plugin) : base("BLM Copium Config")
     {
-        Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
+        Flags = ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoScrollWithMouse;
 
-        Size = new Vector2(250, 150);
-        SizeCondition = ImGuiCond.Always;
+        Size = new Vector2(380, 200);
+        SizeCondition = ImGuiCond.FirstUseEver;
 
         Configuration = plugin.Configuration;
     }
 
     public void Dispose() { }
 
-    public override void PreDraw()
-    {
-        // Flags must be added or removed before Draw() is being called, or they won't apply
-        if (Configuration.IsConfigWindowMovable)
-        {
-            Flags &= ~ImGuiWindowFlags.NoMove;
-        }
-        else
-        {
-            Flags |= ImGuiWindowFlags.NoMove;
-        }
-    }
+    public override void PreDraw() { }
 
     public override void Draw()
     {
         bool shouldSave = false;
         // can't ref a property, so use a local copy
         var enochainDurationValue = Configuration.EnochainDuration;
-        if (ImGui.DragFloat("Enochain Duration", ref enochainDurationValue))
+        if (ImGui.DragFloat("Enochain Duration", ref enochainDurationValue, 0.2f, 0, 60))
         {
             Configuration.EnochainDuration = enochainDurationValue;
             shouldSave = true;
@@ -54,13 +43,6 @@ public class ConfigWindow : Window, IDisposable
         {
             Configuration.InterruptCastsWhenTimerIsZero = interruptValue;
             // can save immediately on change, if you don't want to provide a "Save and Close" button
-            shouldSave = true;
-        }
-
-        var movable = Configuration.IsConfigWindowMovable;
-        if (ImGui.Checkbox("Movable Config Window", ref movable))
-        {
-            Configuration.IsConfigWindowMovable = movable;
             shouldSave = true;
         }
 
@@ -75,6 +57,13 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.DragInt("Y", ref yCoord))
         {
             Configuration.TimerYCoord = yCoord;
+            shouldSave = true;
+        }
+
+        var scale = Configuration.Scale;
+        if(ImGui.DragFloat("Scale", ref scale, 0.2f, 0, 10))
+        {
+            Configuration.Scale = scale;
             shouldSave = true;
         }
 

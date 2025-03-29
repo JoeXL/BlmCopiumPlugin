@@ -10,13 +10,13 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    public bool IsConfigWindowMovable { get; set; } = true;
     public bool InterruptCastsWhenTimerIsZero { get; set; } = true;
 
     public float EnochainDuration { get; set; } = 15.0f;
 
     public int TimerXCoord { get; set; } = -45;
     public int TimerYCoord { get; set; } = 15;
+    public float Scale { get; set; } = 1;
 
     // the below exist just to make saving less cumbersome
     public void Save()

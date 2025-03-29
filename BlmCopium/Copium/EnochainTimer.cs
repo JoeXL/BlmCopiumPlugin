@@ -1,23 +1,12 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Lumina.Data.Parsing;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using static FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkHistory.Delegates;
 using Dalamud.Hooking;
-using static FFXIVClientStructs.FFXIV.Client.System.String.Utf8String.Delegates;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using System.Runtime.InteropServices;
 using LuminaAction = Lumina.Excel.Sheets.Action;
 using Lumina.Excel;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
 namespace BlmCopium.Copium;
@@ -36,6 +25,7 @@ internal unsafe class EnochainTimer
     private readonly uint despairAction = 16505;
     private readonly uint manafontAction = 158;
     private readonly uint transposeAction = 149;
+    private readonly uint umbralSoulAction = 16506;
 
     private readonly uint fireIVAction = 3577;
     private readonly uint blizzardIVAction = 3576;
@@ -48,22 +38,26 @@ internal unsafe class EnochainTimer
     private delegate void OnActionUsedDelegate(uint sourceId, IntPtr sourceCharacter, IntPtr pos, IntPtr effectHeader, IntPtr effectArray, IntPtr effectTrail);
     private Hook<OnActionUsedDelegate>? onActionUsedHook;
 
-    private delegate void OnUseActionDelegate(ActionManager* param1, ActionType param2, uint actionId, ulong param4, uint param5, ActionManager.UseActionMode param6, uint param7, bool* param8, bool param9);
-    private Hook<OnUseActionDelegate>? onUseActionHook;
+    public delegate void UseActionEventDelegate(nint actionManager, uint actionType, uint actionID, ulong targetedActorID, uint param, uint useType, int pvp, nint a8, byte ret);
+    public static event UseActionEventDelegate OnUseAction;
+    private delegate byte OnUseActionDelegate(nint actionManager, uint actionType, uint actionId, ulong targetedActorId, uint param, uint useType, int pvp, nint a8);
+    private Hook<OnUseActionDelegate> onUseActionHook;
 
     private ExcelSheet<LuminaAction>? actionSheet = Plugin.DataManager.GetExcelSheet<LuminaAction>();
 
     private Configuration Configuration;
 
+    bool disposing = false;
+
     public EnochainTimer(Plugin plugin)
     {
         try
-        {            
+        {          
             onActionUsedHook = Plugin.GameInteropProvider.HookFromAddress<OnActionUsedDelegate>((IntPtr)ActionEffectHandler.MemberFunctionPointers.Receive, OnActionUsed);
             onActionUsedHook?.Enable();
 
             onUseActionHook = Plugin.GameInteropProvider.HookFromAddress<OnUseActionDelegate>((IntPtr)ActionManager.MemberFunctionPointers.UseAction, UseAction);
-            onUseActionHook?.Enable();
+            onUseActionHook.Enable();
         }
         catch (Exception e)
         {
@@ -82,21 +76,31 @@ internal unsafe class EnochainTimer
         onUseActionHook?.Dispose();
 
         if(textNode != null) textNode->ToggleVisibility(false);
+
+        disposing = true;
     }
 
     private bool CantCastWithoutEnochain(uint action)
     {
-        // Casting paradox shows as a fire/bliz action here :/
+        var actionId = action;
+        var actionInstance = ActionManager.Instance();
+        if(actionInstance != null)
+        {
+            actionId = actionInstance->GetAdjustedActionId(action);
+        }
+
         if (
-            action == fireIVAction ||
-            action == blizzardIVAction ||
-            action == flarestarAction ||
-            action == despairAction ||
-            action == paradoxAction ||
-            action == flareAction ||
-            action == freezeAction
+            actionId == fireIVAction ||
+            actionId == blizzardIVAction ||
+            actionId == flarestarAction ||
+            actionId == despairAction ||
+            actionId == paradoxAction ||
+            actionId == flareAction ||
+            actionId == freezeAction
             )
+        {
             return true;
+        }
         return false;
     }
 
@@ -114,7 +118,8 @@ internal unsafe class EnochainTimer
             action == freezeAction ||
             action == despairAction ||
             action == manafontAction ||
-            action == transposeAction
+            action == transposeAction ||
+            action == umbralSoulAction
             )
             return true;
         return false;
@@ -219,7 +224,7 @@ internal unsafe class EnochainTimer
     {
         if ((type == TimelineItemType.Action || type == TimelineItemType.OffGCD) && DoesActinoResetEnochain(actionId))
         {
-            if(actionId == transposeAction && combo.Timer <= 0)
+            if((actionId == transposeAction || actionId == umbralSoulAction) && combo.Timer <= 0)
             {
                 return;
             }
@@ -236,6 +241,7 @@ internal unsafe class EnochainTimer
         textNode->DrawFlags |= 0x1;
         textNode->AlignmentFontType = 0x14;
         textNode->TextFlags |= (byte)TextFlags.MultiLine;
+        textNode->SetScale(Configuration.Scale, Configuration.Scale);
         /*textNode->EdgeColor.R = (byte)(Config.EdgeColor.X * 0xFF);
         textNode->EdgeColor.G = (byte)(Config.EdgeColor.Y * 0xFF);
         textNode->EdgeColor.B = (byte)(Config.EdgeColor.Z * 0xFF);
@@ -262,12 +268,17 @@ internal unsafe class EnochainTimer
         }
         else
         {
-            combo.Timer -= (float)Plugin.Framework.UpdateDelta.TotalSeconds;
+            if(combo.Action != umbralSoulAction)
+            {
+                combo.Timer -= (float)Plugin.Framework.UpdateDelta.TotalSeconds;
+            }
         }
     }
 
     public void Update()
     {
+        if (disposing) return;
+
         if (textNode == null) SetupTextNode();
 
         if (textNode == null) return;
@@ -278,12 +289,13 @@ internal unsafe class EnochainTimer
         if(Configuration.InterruptCastsWhenTimerIsZero)
         {
             var player = Plugin.ClientState.LocalPlayer;
+            
             if (combo.Timer <= 0 &&  player.IsCasting)
             {
                 var actionInstance = ActionManager.Instance();
                 if(actionInstance != null && CantCastWithoutEnochain(actionInstance->CastActionId))
                 {
-                    ActionManager.Instance()->UseAction(ActionType.GeneralAction, interruptActionId, 0);
+                    actionInstance->UseAction(ActionType.GeneralAction, interruptActionId, 0);
                 }
             }
         }
@@ -340,7 +352,7 @@ internal unsafe class EnochainTimer
 
         CastWithType((uint)actionId, type.Value);
     }
-    private void UseAction(ActionManager* param1, ActionType param2, uint actionId, ulong param4, uint param5, ActionManager.UseActionMode param6, uint param7, bool* param8, bool param9)
+    private byte UseAction(nint actionManager, uint actionType, uint actionId, ulong targetedActorId, uint param, uint useType, int pvp, nint a8)
     {
         if (Configuration.InterruptCastsWhenTimerIsZero)
         {
@@ -350,12 +362,14 @@ internal unsafe class EnochainTimer
                 var actionInstance = ActionManager.Instance();
                 if (CantCastWithoutEnochain(actionId))
                 {
-                    onUseActionHook?.Original(param1, param2, interruptActionId, param4, param5, param6, param7, param8, param9);
-                    return;
+                    //onUseActionHook?.Original(param1, param2, interruptActionId, param4, param5, param6, param7, param8);
+                    return 2;
                 }
             }
         }
 
-        onUseActionHook?.Original(param1, param2, actionId, param4, param5, param6, param7, param8, param9);
+        var ret = onUseActionHook.Original(actionManager, actionType, actionId, targetedActorId, param, useType, pvp, a8);
+        OnUseAction?.Invoke(actionManager, actionType, actionId, targetedActorId, param, useType, pvp, a8, ret);
+        return ret;
     }
 }

@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using BlmCopium.Windows;
 using BlmCopium.Copium;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using Microsoft.VisualBasic.FileIO;
 
 namespace BlmCopium;
 
