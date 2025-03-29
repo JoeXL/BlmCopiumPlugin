@@ -4,9 +4,11 @@
   "Punchline": "Attempt to make BLM fun again",
   "Description": "Attempt to make BLM fun again. No slash-command(s).",
   "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/JoeXL/BlmCopiumPlugin"
   "Tags": [
     "plugin",
     "blm",
 	"copium"
   ]
+  "DownloadLinkUpdate": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v0.1.0/BLM.Copium.zip"
 }
