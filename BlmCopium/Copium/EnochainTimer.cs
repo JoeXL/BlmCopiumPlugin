@@ -138,85 +138,87 @@ internal unsafe class EnochainTimer
         var addon = "_ParameterWidget";
 
         var paramWidget = (AtkUnitBase*)Plugin.GameGui.GetAddonByName(addon, 1);
-
-        for (var i = 0; i < paramWidget->UldManager.NodeListCount; i++)
+        if (paramWidget != null)
         {
-            if (paramWidget->UldManager.NodeList[i] == null) continue;
-            if (paramWidget->UldManager.NodeList[i]->NodeId == EnochainTimerNode)
+            for (var i = 0; i < paramWidget->UldManager.NodeListCount; i++)
             {
-                textNode = (AtkTextNode*)paramWidget->UldManager.NodeList[i];
-
-                break;
-            }
-        }
-
-        if (textNode == null)
-        {
-            var newTextNode = (AtkTextNode*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkTextNode), 8);
-            if (newTextNode != null)
-            {
-                var lastNode = paramWidget->RootNode;
-                if (lastNode == null) return;
-
-                IMemorySpace.Memset(newTextNode, 0, (ulong)sizeof(AtkTextNode));
-                newTextNode->Ctor();
-                textNode = newTextNode;
-
-                newTextNode->AtkResNode.Type = NodeType.Text;
-                newTextNode->AtkResNode.NodeFlags = NodeFlags.AnchorLeft | NodeFlags.AnchorTop;
-                newTextNode->AtkResNode.DrawFlags = 0;
-                newTextNode->AtkResNode.SetPositionShort(1, 1);
-                newTextNode->AtkResNode.SetWidth(200);
-                newTextNode->AtkResNode.SetHeight(14);
-
-                newTextNode->LineSpacing = 24;
-                newTextNode->AlignmentFontType = 0x14;
-                newTextNode->FontSize = 12;
-                newTextNode->TextFlags = (byte)(TextFlags.Edge);
-                newTextNode->TextFlags2 = 0;
-
-                newTextNode->AtkResNode.NodeId = EnochainTimerNode;
-
-                newTextNode->AtkResNode.Color.A = 0xFF;
-                newTextNode->AtkResNode.Color.R = 0xFF;
-                newTextNode->AtkResNode.Color.G = 0xFF;
-                newTextNode->AtkResNode.Color.B = 0xFF;
-
-                if (lastNode->ChildNode != null)
+                if (paramWidget->UldManager.NodeList[i] == null) continue;
+                if (paramWidget->UldManager.NodeList[i]->NodeId == EnochainTimerNode)
                 {
-                    lastNode = lastNode->ChildNode;
-                    while (lastNode->PrevSiblingNode != null)
+                    textNode = (AtkTextNode*)paramWidget->UldManager.NodeList[i];
+
+                    break;
+                }
+            }
+
+            if (textNode == null)
+            {
+                var newTextNode = (AtkTextNode*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkTextNode), 8);
+                if (newTextNode != null)
+                {
+                    var lastNode = paramWidget->RootNode;
+                    if (lastNode == null) return;
+
+                    IMemorySpace.Memset(newTextNode, 0, (ulong)sizeof(AtkTextNode));
+                    newTextNode->Ctor();
+                    textNode = newTextNode;
+
+                    newTextNode->AtkResNode.Type = NodeType.Text;
+                    newTextNode->AtkResNode.NodeFlags = NodeFlags.AnchorLeft | NodeFlags.AnchorTop;
+                    newTextNode->AtkResNode.DrawFlags = 0;
+                    newTextNode->AtkResNode.SetPositionShort(1, 1);
+                    newTextNode->AtkResNode.SetWidth(200);
+                    newTextNode->AtkResNode.SetHeight(14);
+
+                    newTextNode->LineSpacing = 24;
+                    newTextNode->AlignmentFontType = 0x14;
+                    newTextNode->FontSize = 12;
+                    newTextNode->TextFlags = (byte)(TextFlags.Edge);
+                    newTextNode->TextFlags2 = 0;
+
+                    newTextNode->AtkResNode.NodeId = EnochainTimerNode;
+
+                    newTextNode->AtkResNode.Color.A = 0xFF;
+                    newTextNode->AtkResNode.Color.R = 0xFF;
+                    newTextNode->AtkResNode.Color.G = 0xFF;
+                    newTextNode->AtkResNode.Color.B = 0xFF;
+
+                    if (lastNode->ChildNode != null)
                     {
-                        lastNode = lastNode->PrevSiblingNode;
+                        lastNode = lastNode->ChildNode;
+                        while (lastNode->PrevSiblingNode != null)
+                        {
+                            lastNode = lastNode->PrevSiblingNode;
+                        }
+
+                        newTextNode->AtkResNode.NextSiblingNode = lastNode;
+                        newTextNode->AtkResNode.ParentNode = paramWidget->RootNode;
+                        lastNode->PrevSiblingNode = (AtkResNode*)newTextNode;
+                    }
+                    else
+                    {
+                        lastNode->ChildNode = (AtkResNode*)newTextNode;
+                        newTextNode->AtkResNode.ParentNode = lastNode;
                     }
 
-                    newTextNode->AtkResNode.NextSiblingNode = lastNode;
-                    newTextNode->AtkResNode.ParentNode = paramWidget->RootNode;
-                    lastNode->PrevSiblingNode = (AtkResNode*)newTextNode;
+                    textNode->TextColor.A = 0xFF;
+                    textNode->TextColor.R = 0xFF;
+                    textNode->TextColor.G = 0xFF;
+                    textNode->TextColor.B = 0xFF;
+
+                    textNode->EdgeColor.A = 0xFF;
+                    textNode->EdgeColor.R = 0xF0;
+                    textNode->EdgeColor.G = 0x8E;
+                    textNode->EdgeColor.B = 0x37;
+
+                    paramWidget->UldManager.UpdateDrawNodeList();
                 }
-                else
-                {
-                    lastNode->ChildNode = (AtkResNode*)newTextNode;
-                    newTextNode->AtkResNode.ParentNode = lastNode;
-                }
-
-                textNode->TextColor.A = 0xFF;
-                textNode->TextColor.R = 0xFF;
-                textNode->TextColor.G = 0xFF;
-                textNode->TextColor.B = 0xFF;
-
-                textNode->EdgeColor.A = 0xFF;
-                textNode->EdgeColor.R = 0xF0;
-                textNode->EdgeColor.G = 0x8E;
-                textNode->EdgeColor.B = 0x37;
-
-                paramWidget->UldManager.UpdateDrawNodeList();
             }
-        }
 
-        if(textNode != null)
-        {
-            textNode->ToggleVisibility(true);
+            if (textNode != null)
+            {
+                textNode->ToggleVisibility(true);
+            }
         }
     }
 
