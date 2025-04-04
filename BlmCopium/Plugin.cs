@@ -23,7 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null;
     [PluginService] internal static IFramework Framework { get; private set; } = null;
 
-    private const string CommandName = "/pmycommand";
+    private const string CommandName = "/blmcope";
 
     public Configuration Configuration { get; init; }
 
@@ -48,7 +48,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = "Open the main window"
         });
 
         PluginInterface.UiBuilder.Draw += DrawUI;
@@ -82,7 +82,7 @@ public sealed class Plugin : IDalamudPlugin
     private void OnCommand(string command, string args)
     {
         // in response to the slash command, just toggle the display status of our main ui
-        ToggleMainUI();
+        ToggleConfigUI();
     }
 
     private void DrawUI() { 

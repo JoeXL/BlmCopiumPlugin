@@ -34,5 +34,10 @@ The actions blocked when the timer is zero are:
 * Flare
 * Freeze
 
+## Installation
+Dalamud Settings > Experimental > Custom Plugin Repositories
+Add "https://raw.githubusercontent.com/JoeXL/BlmCopiumPlugin/refs/heads/master/repo.json" as a URL (without quotes)
+It should now show up in the dalamud plugin list for you to install
+
 ## Limitations
 Given this plugin only manipulates the action of casting actions, it will not actually remove the enochain state when the timer runs out. This means polyglot stacks stay and continue to accumulate, and also if in fire, fire spells will still have an increased mana cost.
