@@ -14,8 +14,8 @@
         "DalamudApiLevel": 12,
         "IsHide": "False",
         "IsTestingExclusive": "False",
-        "DownloadLinkInstall": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v0.1.0/BLM.Copium.zip",
-        "DownloadLinkTesting": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v0.1.0/BLM.Copium.zip",
-        "DownloadLinkUpdate": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v0.1.0/BLM.Copium.zip"
+        "DownloadLinkInstall": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v1.0.0/BLM.Copium.zip",
+        "DownloadLinkTesting": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v1.0.0/BLM.Copium.zip",
+        "DownloadLinkUpdate": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v1.0.0/BLM.Copium.zip"
     }
 ]
