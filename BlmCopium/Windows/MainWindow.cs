@@ -3,7 +3,7 @@ using System.Numerics;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 
 namespace BlmCopium.Windows;
@@ -59,7 +59,7 @@ public class MainWindow : Window, IDisposable
                 {
                     using (ImRaii.PushIndent(55f))
                     {
-                        ImGui.Image(copiumImage.ImGuiHandle, new Vector2(copiumImage.Width, copiumImage.Height));
+                        ImGui.Image(copiumImage.Handle, new Vector2(copiumImage.Width, copiumImage.Height));
                     }
                 }
                 else

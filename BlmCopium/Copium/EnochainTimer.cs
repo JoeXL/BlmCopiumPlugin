@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using LuminaAction = Lumina.Excel.Sheets.Action;
 using Lumina.Excel;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using Lumina.Data.Parsing;
 
 namespace BlmCopium.Copium;
 
@@ -137,7 +138,7 @@ internal unsafe class EnochainTimer
 
         var addon = "_ParameterWidget";
 
-        var paramWidget = (AtkUnitBase*)Plugin.GameGui.GetAddonByName(addon, 1);
+        var paramWidget = (AtkUnitBase*)Plugin.GameGui.GetAddonByName(addon, 1).Address;
         if (paramWidget != null)
         {
             for (var i = 0; i < paramWidget->UldManager.NodeListCount; i++)
@@ -173,8 +174,7 @@ internal unsafe class EnochainTimer
                     newTextNode->LineSpacing = 24;
                     newTextNode->AlignmentFontType = 0x14;
                     newTextNode->FontSize = 12;
-                    newTextNode->TextFlags = (byte)(TextFlags.Edge);
-                    newTextNode->TextFlags2 = 0;
+                    newTextNode->TextFlags = TextFlags.Edge;
 
                     newTextNode->AtkResNode.NodeId = EnochainTimerNode;
 
@@ -242,7 +242,7 @@ internal unsafe class EnochainTimer
         textNode->Y = (float)Configuration.TimerYCoord + 15;
         textNode->DrawFlags |= 0x1;
         textNode->AlignmentFontType = 0x14;
-        textNode->TextFlags |= (byte)TextFlags.MultiLine;
+        textNode->TextFlags |= TextFlags.MultiLine;
         textNode->SetScale(Configuration.Scale, Configuration.Scale);
         /*textNode->EdgeColor.R = (byte)(Config.EdgeColor.X * 0xFF);
         textNode->EdgeColor.G = (byte)(Config.EdgeColor.Y * 0xFF);
