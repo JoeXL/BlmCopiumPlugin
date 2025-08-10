@@ -11,7 +11,7 @@
             "dalamud",
             "blm"
         ],
-        "DalamudApiLevel": 12,
+        "DalamudApiLevel": 13,
         "IsHide": "False",
         "IsTestingExclusive": "False",
         "DownloadLinkInstall": "https://github.com/JoeXL/BlmCopiumPlugin/releases/download/v1.0.1/BLM.Copium.zip",
