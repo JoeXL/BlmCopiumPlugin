@@ -4,7 +4,7 @@
         "Name": "BLM Copium",
         "Description": "Attempt to make BLM fun again",
         "InternalName": "BlmCopium",
-        "AssemblyVersion": "1.0.3",
+        "AssemblyVersion": "1.0.2",
         "RepoUrl": "https://github.com/JoeXL/BlmCopiumPlugin",
         "ApplicableVersion": "any",
         "Tags": [
