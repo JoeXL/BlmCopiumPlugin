@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.SDK/14.0.1">
   <PropertyGroup>
-    <Version>1.0.3</Version>
+    <Version>1.0.0.3</Version>
     <Description>A sample plugin.</Description>
     <PackageProjectUrl>https://github.com/JoeXL/BlmCopiumPlugin</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
