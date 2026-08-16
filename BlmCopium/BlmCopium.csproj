@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Version>0.0.0.1</Version>
     <Description>A sample plugin.</Description>
-    <PackageProjectUrl>https://github.com/JoeXL/DalamudSamplePlugin</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/JoeXL/BlmCopiumPlugin</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
     <TargetFramework>net10.0-windows7.0</TargetFramework>
@@ -14,14 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\Data\blmcompiumsmall.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="DalamudPackager" Version="14.0.1" />
+    <PackageReference Update="DalamudPackager" Version="15.0.0" />
     <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.39" />
   </ItemGroup>
 </Project>

@@ -285,7 +285,7 @@ internal unsafe class EnochainTimer
 
         if (textNode == null) return;
 
-        var player = Plugin.ClientState.LocalPlayer;
+        var player = Plugin.ObjectTable.LocalPlayer;
 
         if (player == null) return;
 
@@ -355,7 +355,7 @@ internal unsafe class EnochainTimer
     {
         onActionUsedHook?.Original(sourceId, sourceCharacter, pos, effectHeader, effectArray, effectTrail);
 
-        IPlayerCharacter? player = Plugin.ClientState.LocalPlayer;
+        IPlayerCharacter? player = Plugin.ObjectTable.LocalPlayer;
         if (player == null || sourceId != player.GameObjectId) { return; }
 
         int actionId = Marshal.ReadInt32(effectHeader, 0x8);
@@ -368,7 +368,7 @@ internal unsafe class EnochainTimer
     {
         if (Configuration.InterruptCastsWhenTimerIsZero)
         {
-            var player = Plugin.ClientState.LocalPlayer;
+            var player = Plugin.ObjectTable.LocalPlayer;
             if (combo.Timer <= 0)
             {
                 var actionInstance = ActionManager.Instance();

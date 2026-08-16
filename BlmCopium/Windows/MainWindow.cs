@@ -10,13 +10,12 @@ namespace BlmCopium.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    private string GoatImagePath;
     private Plugin Plugin;
 
     // We give this window a hidden ID using ##
     // So that the user will see "My Amazing Window" as window title,
     // but for ImGui the ID is "My Amazing Window##With a hidden ID"
-    public MainWindow(Plugin plugin, string goatImagePath)
+    public MainWindow(Plugin plugin)
         : base("BLM Copium", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
@@ -25,7 +24,6 @@ public class MainWindow : Window, IDisposable
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
 
-        GoatImagePath = goatImagePath;
         Plugin = plugin;
     }
 
@@ -54,18 +52,6 @@ public class MainWindow : Window, IDisposable
             if (child.Success)
             {
                 ImGui.TextUnformatted("BLM is dead but we can try and revive parts of it");
-                var copiumImage = Plugin.TextureProvider.GetFromFile(GoatImagePath).GetWrapOrDefault();
-                if (copiumImage != null)
-                {
-                    using (ImRaii.PushIndent(55f))
-                    {
-                        ImGui.Image(copiumImage.Handle, new Vector2(copiumImage.Width, copiumImage.Height));
-                    }
-                }
-                else
-                {
-                    ImGui.TextUnformatted("Image not found.");
-                }
             }
         }
     }
